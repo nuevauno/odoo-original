@@ -9,9 +9,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libxml2-dev libxslt1-dev libjpeg-dev zlib1g-dev libffi-dev \
     fonts-dejavu-core fonts-liberation node-less npm \
  && rm -rf /var/lib/apt/lists/*
-RUN git clone --depth 1 --branch ${ODOO_BRANCH} https://github.com/odoo/odoo.git /opt/odoo \
+# Fijado al MISMO commit que usa el port (submódulo upstream/motor-19 de motor-cloudflare): la
+# referencia y el port se comparan siempre al mismo commit; cuando el pin suba, sube este ARG.
+ARG ODOO_COMMIT=4291b65978287b737a2e094d3122c20ed8564852
+RUN git init -q /opt/odoo \
+ && git -C /opt/odoo remote add origin https://github.com/odoo/odoo.git \
+ && git -C /opt/odoo fetch --depth 1 origin ${ODOO_COMMIT} \
+ && git -C /opt/odoo checkout -q FETCH_HEAD \
  && git -C /opt/odoo rev-parse HEAD > /opt/odoo/COMMIT \
- && echo "odoo/odoo@$(cat /opt/odoo/COMMIT) (rama ${ODOO_BRANCH})"
+ && echo "odoo/odoo@$(cat /opt/odoo/COMMIT) (rama ${ODOO_BRANCH}, commit fijado)"
 RUN pip install --no-cache-dir -r /opt/odoo/requirements.txt psycopg2-binary \
  && npm install -g rtlcss
 RUN useradd -m -d /var/lib/odoo -U -r -s /bin/false odoo && mkdir -p /var/lib/odoo && chown -R odoo:odoo /var/lib/odoo /opt/odoo
