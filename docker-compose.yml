@@ -1,0 +1,30 @@
+services:
+  db:
+    image: postgres:16.4
+    environment:
+      POSTGRES_USER: odoo
+      POSTGRES_PASSWORD: odoo
+      POSTGRES_DB: postgres
+    volumes:
+      - odoo-original-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U odoo -d postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+  odoo:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+      DB_USER: odoo
+      DB_PASSWORD: odoo
+    volumes:
+      - odoo-original-data:/var/lib/odoo
+    expose:
+      - "8069"
+volumes:
+  odoo-original-db:
+  odoo-original-data:
