@@ -23,5 +23,7 @@ RUN pip install --no-cache-dir -r /opt/odoo/requirements.txt psycopg2-binary \
 RUN useradd -m -d /var/lib/odoo -U -r -s /bin/false odoo && mkdir -p /var/lib/odoo && chown -R odoo:odoo /var/lib/odoo /opt/odoo
 USER odoo
 EXPOSE 8069 8072
-# Primera arranque: crea la base "odoo" e instala SOLO el módulo base, sin demo. Reinicios posteriores: no-op.
-CMD ["sh","-c","echo \"Odoo oficial: odoo/odoo@$(cat /opt/odoo/COMMIT)\"; exec python3 /opt/odoo/odoo-bin --db_host=${DB_HOST:-db} --db_port=5432 --db_user=${DB_USER:-odoo} --db_password=${DB_PASSWORD:-odoo} --data-dir=/var/lib/odoo --proxy-mode --db-filter=^odoo$ -d odoo -i base --without-demo=all --load-language=es_CL"]
+# Arranque nativo: SIN base creada. La primera visita a / lleva al gestor de bases de datos de la fuente
+# (/web/database/selector): ahí se fija la contraseña maestra y se crea la base con correo, clave, idioma,
+# país y datos de demostración, exactamente como una instalación de fábrica.
+CMD ["sh","-c","echo \"Odoo oficial: odoo/odoo@$(cat /opt/odoo/COMMIT)\"; exec python3 /opt/odoo/odoo-bin --db_host=${DB_HOST:-db} --db_port=5432 --db_user=${DB_USER:-odoo} --db_password=${DB_PASSWORD:-odoo} --data-dir=/var/lib/odoo --proxy-mode"]
